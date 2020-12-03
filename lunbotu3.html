@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		* {
+			padding: 0;
+			margin: 0;
+			list-style: none;
+			border: 0;
+		}
+
+		.all {
+			width: 500px;
+			height: 200px;
+			padding: 7px;
+			border: 1px solid #ccc;
+			margin: 100px auto;
+			position: relative;
+		}
+
+		.screen {
+			width: 500px;
+			height: 200px;
+			overflow: hidden;
+			position: relative;
+		}
+
+		.screen li {
+			width: 500px;
+			height: 200px;
+			overflow: hidden;
+			float: left;
+		}
+
+		.screen ul {
+			position: absolute;
+			left: 0;
+			top: 0px;
+			width: 3000px;
+		}
+
+		.all ol {
+			position: absolute;
+			right: 10px;
+			bottom: 10px;
+			line-height: 20px;
+			text-align: center;
+		}
+
+		.all ol li {
+			float: left;
+			width: 20px;
+			height: 20px;
+			background: #fff;
+			border: 1px solid #ccc;
+			margin-left: 10px;
+			cursor: pointer;
+		}
+
+		.all ol li.current {
+			background: yellow;
+		}
+
+		#arr {
+			display: none;
+			z-index: 1000;
+
+		}
+
+		#arr span {
+			width: 40px;
+			height: 40px;
+			position: absolute;
+			left: 5px;
+			top: 50%;
+			margin-top: -20px;
+			background: #000;
+			cursor: pointer;
+			line-height: 40px;
+			text-align: center;
+			font-weight: bold;
+			font-family: '黑体';
+			font-size: 30px;
+			color: #fff;
+			opacity: 0.3;
+			border: 1px solid #fff;
+		}
+
+		#arr #right {
+			right: 5px;
+			left: auto;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="all" id='box'>
+		<div class="screen">
+			<ul>
+				<li><img src="./imgs/wf1.jpg" width="500" height="200" /></li>
+				<li><img src="./imgs/wf2.jpg" width="500" height="200" /></li>
+				<li><img src="./imgs/wf3.jpg" width="500" height="200" /></li>
+				<li><img src="./imgs/wf4.jpg" width="500" height="200" /></li>
+				<li><img src="./imgs/wf5.jpg" width="500" height="200" /></li>
+				<li><img src="./imgs/wf1.jpg" width="500" height="200" /></li>
+			</ul>
+			<ol>
+				<li class="current">1</li>
+				<li>2</li>
+				<li>3</li>
+				<li>4</li>
+				<li>5</li>
+			</ol>
+		</div>
+		<div id="arr">
+			<span id="left">&lt;</span>
+			<span id="right">&gt;</span>
+		</div>
+	</div>
+	<script>
+		var screen = document.getElementsByClassName('screen')[0];
+		var ul = document.getElementsByTagName('ul')[0];
+		var ol = document.getElementsByTagName('ol')[0];
+		var lis = ol.getElementsByTagName('li');
+		var box = document.getElementById('box');
+		var arr = document.getElementById('arr');
+		var left = document.getElementById('left');
+		var right = document.getElementById('right');
+		var timer = null
+		var n = 2000;
+		var step = 10;
+		var cn = 0;
+		var ln = 0;
+		var flag = true
+		function run() {
+			ul.style.left = ul.offsetLeft - step + 'px';
+			n = ul.offsetLeft % -500 == 0 ? 2000 : 1;
+		}
+		function automove() {
+			clearTimeout(timer);
+			timer = setTimeout(function () {
+				ulCheck(true);
+				run();
+				dotCheck(true);
+				automove();
+			}, n)
+		}
+		automove()
+		function dot() {
+			lis[ln].classList.remove('current');
+			lis[cn].classList.add('current');
+			ln = cn;
+		}
+		function ulCheck(key) {
+			if (key) {
+				if (ul.offsetLeft == -2500) {
+					ul.style.left = 0;
+				}
+			} else {
+				if (ul.offsetLeft == 0) {
+					ul.style.left = '-2500px';
+				}
+			}
+		}
+		function dotCheck(key) {
+			if (key) {
+				if ((ul.offsetLeft - 250) % -500 == 0) {
+					cn++;
+					if (cn > 4) {
+						cn = 0
+					}
+					dot();
+				}
+			} else {
+				if ((ul.offsetLeft - 250) % -500 == 0) {
+					cn--;
+					if (cn < 0) {
+						cn = 4
+					}
+					dot();
+				}
+			}
+		}
+		box.onmouseenter = function () {
+			clearTimeout(timer);
+			arr.style.display = 'block';
+			ul.style.left = cn * (-500) + 'px';
+			playmove();
+		}
+		box.onmouseleave = function () {
+			step = 10;
+			arr.style.display = 'none';
+			automove();
+		}
+		function playmove() {
+			left.onclick = function () {
+				clearTimeout(timer);
+				step = -10;
+				flag = true;
+				play();
+			}
+			right.onclick = function () {
+				clearTimeout(timer);
+				step = 10;
+				flag = false;
+				play()
+			}
+			for (var i = 0; i < lis.length; i++) {
+				lis[i].onmouseenter = liclick;
+			}
+		}
+		function play() {
+			if (flag) {
+				ulCheck(false)
+				dotCheck(false)
+			} else {
+				ulCheck(true);
+				dotCheck(true)
+			}
+			run();
+			if (n === 1000) {
+				clearTimeout(timer);
+				return;
+			}
+			timer = setTimeout(play, n);
+		}
+		function liclick() {
+			var index = this.innerText;
+			ul.style.left = (index - 1) * (-500) + 'px';
+			cn = index - 1;
+			dot();
+		}
+	</script>
+</body>
+
+</html>
